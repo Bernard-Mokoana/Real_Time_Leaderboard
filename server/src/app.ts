@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { logger } from "./utils/logger.js";
 
 export const app: express.Express = express();
 
@@ -13,7 +14,7 @@ export const setUpMiddleware = () => {
 
   // Logging middleware, Config logger later
   app.use((req, _, next) => {
-    console.log(`Incoming request: ${req.method} ${req.url}`);
+    logger.info(`Incoming request: ${req.method} ${req.path}`);
     next();
   });
 };
