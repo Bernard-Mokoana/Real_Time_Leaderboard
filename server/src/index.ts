@@ -1,54 +1,59 @@
 import { app, setUpMiddleware } from "./app.js";
 import { closePool, startPool } from "./config/db.js";
-import dotenv from "dotenv";
+import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 
-dotenv.config();
+const shutdownTimeoutMs = 30_000;
 
-const SHUTDOWN_TIMEOUT_MS = 30_000;
-
-const startServer = async () => {
-  const rawPort = process.env.PORT;
-  const PORT = rawPort === undefined || rawPort === "" ? 8001 : Number(rawPort);
-  if (!Number.isSafeInteger(PORT) || PORT < 1 || PORT > 65535) {
-    throw new Error("PORT must be an integer from 1 to 65535");
-  }
-
+const startServer = async (): Promise<void> => {
   setUpMiddleware();
 
   await startPool();
 
-  const server = app.listen(PORT, async () => {
-    logger.info(`Listening to PORT: ${PORT}`);
+  const server = app.listen(env.PORT, () => {
+    logger.success(`Server listening on port ${env.PORT}`);
   });
 
-  const shutdown = (signal: string) => {
-    logger.info(`Received ${signal}, shutting down gracefully`);
+  let isShuttingDown = false;
+
+  const shutdown = (signal: NodeJS.Signals): void => {
+    if (isShuttingDown) {
+      return;
+    }
+
+    isShuttingDown = true;
+    logger.info(`Received ${signal}; shutting down gracefully.`);
 
     const forceExitTimer = setTimeout(() => {
-      logger.error(
-        `Graceful shutdown timed out after ${SHUTDOWN_TIMEOUT_MS}ms, forcing exit`,
-        ``,
-      );
+      logger.error(`Graceful shutdown timed out after ${shutdownTimeoutMs}ms.`);
       process.exit(1);
-    }, SHUTDOWN_TIMEOUT_MS);
-    server.close(async (err) => {
-      if (err) {
-        logger.error("Error while closing HTTP server", err);
-      }
-      try {
-        await closePool();
-        logger.info("Database pool closed");
-        process.exit(err ? 1 : 0);
-      } catch (poolError) {
-        logger.error("Error while closing database pool", poolError);
-        process.exit(1);
-      }
+    }, shutdownTimeoutMs);
+
+    forceExitTimer.unref();
+
+    server.close((serverError) => {
+      void (async () => {
+        if (serverError) {
+          logger.error("Error while closing HTTP server.", serverError);
+        }
+        try {
+          await closePool();
+          process.exit(serverError ? 1 : 0);
+        } catch (error) {
+          logger.error("Error during graceful shutdown.", error);
+          process.exit(1);
+        }
+      })();
     });
   };
 
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.once("SIGINT", () => shutdown("SIGINT"));
+  process.once("SIGTERM", () => shutdown("SIGTERM"));
 };
 
-await startServer();
+try {
+  await startServer();
+} catch (error) {
+  logger.error("Unable to start server.", error);
+  process.exit(1);
+}
