@@ -28,6 +28,7 @@ const startServer = async () => {
     const forceExitTimer = setTimeout(() => {
       logger.error(
         `Graceful shutdown timed out after ${SHUTDOWN_TIMEOUT_MS}ms, forcing exit`,
+        ``,
       );
       process.exit(1);
     }, SHUTDOWN_TIMEOUT_MS);
