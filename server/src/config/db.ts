@@ -19,7 +19,7 @@ export const query = async <T extends QueryResultRow>(
   text: string,
   values: readonly unknown[] = [],
 ) => {
-  return pool.query<T>(text, values);
+  return pool.query<T>(text, values as unknown[]);
 };
 
 export const withTransaction = async <T>(
@@ -27,6 +27,7 @@ export const withTransaction = async <T>(
 ): Promise<T> => {
   const client = await pool.connect();
 
+  let releaseError: Error | undefined;
   try {
     await client.query("BEGIN");
 
@@ -40,10 +41,14 @@ export const withTransaction = async <T>(
       await client.query("ROLLBACK");
     } catch (rollbackError) {
       logger.error("Failed to roll back transaction.", rollbackError);
-      client.release(rollbackError as Error);
-      throw error;
+      // client.release(rollbackError as Error);
+      // throw error;
+      releaseError = rollbackError as Error;
     }
-    client.release();
+    throw error;
+  } finally {
+    client.release(releaseError);
+  }
 };
 
 export const startPool = async (): Promise<void> => {
