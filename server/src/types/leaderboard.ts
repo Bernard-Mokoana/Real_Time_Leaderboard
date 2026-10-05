@@ -1,9 +1,4 @@
-export type Task = {
-  id: string;
-  title: string;
-  taskType: string;
-  xpValue: number;
-};
+import type { Score } from "./score.js";
 
 export type LeaderboardEvent = {
   id: string;
@@ -23,12 +18,6 @@ export type LeaderboardEventRow = {
   event_type: string;
   reference_id: string | null;
   created_at: Date;
-};
-
-export type Score = {
-  userId: string;
-  totalXp: number;
-  lastEarned: Date | null;
 };
 
 export type AwardXpInput = {

@@ -4,3 +4,10 @@ export type TaskRow = {
   task_type: string;
   xp_value: number;
 };
+
+export type Task = {
+  id: string;
+  title: string;
+  taskType: string;
+  xpValue: number;
+};

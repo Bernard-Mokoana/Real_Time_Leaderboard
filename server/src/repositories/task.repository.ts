@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 
-import type { Task } from "../types/leaderboard.js";
+import type { Task } from "../types/task.js";
 
 import type { TaskRow } from "../types/task.js";
 
