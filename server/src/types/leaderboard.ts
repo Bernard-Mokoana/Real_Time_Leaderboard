@@ -15,6 +15,16 @@ export type LeaderboardEvent = {
   createdAt: Date;
 };
 
+export type LeaderboardEventRow = {
+  id: string;
+  user_id: string;
+  task_id: string;
+  xp_delta: number;
+  event_type: string;
+  reference_id: string | null;
+  created_at: Date;
+};
+
 export type Score = {
   userId: string;
   totalXp: number;
