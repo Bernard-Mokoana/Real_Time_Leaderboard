@@ -72,6 +72,13 @@ CREATE TRIGGER trg_scores_updated_at
     BEFORE UPDATE ON scores
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+SELECT LOWER(TRIM(email)) AS normalized_email, COUNT(*)
+FROM users
+GROUP BY LOWER(TRIM(email))
+HAVING COUNT(*) > 1;
+
+
+
 
 
 
