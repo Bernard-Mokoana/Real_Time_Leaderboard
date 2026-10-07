@@ -31,6 +31,19 @@ export const scoreRepository = {
     return toScore(result.rows[0]!);
   },
 
+  async createInitialScore(
+    client: DatabaseClient,
+    userId: string,
+  ): Promise<void> {
+    await client.query(
+      `
+        INSERT INTO scores (user_id, total_xp)
+        VALUES ($1, 0)
+        `,
+      [userId],
+    );
+  },
+
   async findByUserId(
     client: DatabaseClient,
     userId: string,

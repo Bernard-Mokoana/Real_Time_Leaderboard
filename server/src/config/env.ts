@@ -19,6 +19,8 @@ const environmentSchema = z.object({
     .min(32, "JWT_SECRET must contain at least 32 characters")
     .optional(),
 
+  JWT_EXPIRES_IN: z.enum(["15m", "1h", "8h", "1d"]).default("1h"),
+
   CORS_ORIGIN: z.string().url().optional(),
 });
 
