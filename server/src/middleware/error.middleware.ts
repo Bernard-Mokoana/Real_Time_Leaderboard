@@ -38,7 +38,7 @@ export const notFoundHandler: RequestHandler = (req, _res, next) => {
   );
 };
 
-export const errorHangler: ErrorRequestHandler = (error, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
   if (res.headersSent) {
     next(error);
     return;

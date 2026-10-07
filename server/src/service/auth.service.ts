@@ -2,9 +2,9 @@ import bcrypt from "bcryptjs";
 import { pool } from "../config/db.js";
 
 import { withTransaction } from "../config/db.js";
-import { AppError } from "../errors/app-error.js";
+import { AppError } from "../errors/app_errors.js";
 import { scoreRepository } from "../repositories/score.repository.js";
-import { userRepository } from "../repositories/user.repository.js";
+import { userRepository } from "./user.repository.js";
 import type { AuthUser, UserWithPassword } from "../types/user.js";
 
 const passwordSaltRounds = 12;
