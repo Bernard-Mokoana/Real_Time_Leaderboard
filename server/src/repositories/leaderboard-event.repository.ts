@@ -27,15 +27,13 @@ export const leaderboardEventRepository = {
   ): Promise<LeaderboardEvent | null> {
     const result = await client.query<LeaderboardEventRow>(
       `
-            INSERT INTO leaderboard_events (
-            user_id, task_id, xp_delta, event_type, reference_id
-            )
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (user_id, reference_id)
-            WHERE reference_id IS NOT NULL
-            DO NOTHING
-            RETURNING id, user_id, task_id, xp_delta, event_type, reference_id, created_at
-            `,
+      INSERT INTO leaderboard_events (
+      user_id, task_id, xp_delta, event_type, reference_id
+      )
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT DO NOTHING
+      RETURNING id, user_id, task_id, xp_delta, event_type, reference_id, created_at
+      `,
       [
         input.userId,
         input.taskId,
@@ -50,6 +48,37 @@ export const leaderboardEventRepository = {
     return row ? toLeaderboardEvent(row) : null;
   },
 
+  async findExistingCompletion(
+    client: DatabaseClient,
+    input: {
+      userId: string;
+      taskId: string;
+      referenceId: string;
+    },
+  ): Promise<LeaderboardEvent | null> {
+    const result = await client.query<LeaderboardEventRow>(
+      `
+      SELECT id, user_id, task_id, xp_delta, event_type, reference_id, created_at
+      FROM leaderboard_events
+      WHERE user_id = $1
+      AND (
+      reference_id = $2
+      OR (
+      task_id = $3
+      AND event_type = 'task_completed'
+      )
+      )
+      ORDER BY 
+      CASE WHEN reference_id = $2 THEN 0 ELSE 1 END
+      LIMIT 1
+      `,
+      [input.userId, input.referenceId, input.taskId],
+    );
+
+    const row = result.rows[0];
+
+    return row ? toLeaderboardEvent(row) : null;
+  },
   async findByReferenceId(
     client: DatabaseClient,
     userId: string,

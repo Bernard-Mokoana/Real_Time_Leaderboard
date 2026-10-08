@@ -4,12 +4,19 @@ import { env } from "../config/env.js";
 import { AppError } from "../errors/app_errors.js";
 import type { AccessTokenPayload } from "../types/auth.js";
 
+const getJwtSecret = (): string => {
+  if (!env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured.");
+  }
+  return env.JWT_SECRET;
+};
+
 export const createAccessToken = (userId: string): string => {
   return jwt.sign(
     {
       type: "access",
     },
-    env.JWT_SECRET,
+    getJwtSecret(),
     {
       subject: userId,
       expiresIn: env.JWT_EXPIRES_IN,

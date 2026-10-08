@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { env } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
-import { userRepository } from "../service/user.repository.js";
+import { userRepository } from "../repositories/user.repository.js";
 import { loginUser, registerUser } from "../service/auth.service.js";
 import { createAccessToken } from "../service/token.service.js";
 import { pool } from "../config/db.js";
