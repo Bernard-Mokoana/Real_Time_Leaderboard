@@ -35,16 +35,19 @@ export const awardXp = async (input: AwardXpInput): Promise<AwardXpResult> => {
     });
 
     if (!newEvent) {
-      const existingEvent = await leaderboardEventRepository.findByReferenceId(
-        client,
-        input.userId,
-        input.referenceId,
-      );
+      const existingEvent =
+        await leaderboardEventRepository.findExistingCompletion(client, {
+          userId: input.userId,
+          taskId: task.id,
+          referenceId: input.referenceId,
+        });
 
       const score = await scoreRepository.findByUserId(client, input.userId);
 
       if (!existingEvent || !score) {
-        throw new ScoreNotFoundError(input.userId);
+        throw new Error(
+          "A leaderboard event conflict occurred, but the existing record could not be found.",
+        );
       }
 
       return {
