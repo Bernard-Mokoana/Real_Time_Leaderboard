@@ -31,3 +31,34 @@ export type AwardXpResult = {
   score: Score;
   wasAlreadyProcessed: boolean;
 };
+
+export type LeaderboardEntry = {
+  rank: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  totalXp: number;
+  lastEarned: Date | null;
+};
+
+export type LeaderboardCursor = {
+  totalXp: number;
+  userId: string;
+};
+
+export type LeaderboardPage = {
+  entries: LeaderboardEntry[];
+  nextCursor: string | null;
+  viewer: LeaderboardEntry | null;
+};
+
+export type LeaderboardRow = {
+  rank: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  total_xp: string;
+  last_earned: Date | null;
+};
