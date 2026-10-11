@@ -1,7 +1,14 @@
+import { createServer } from "node:http";
+
+import { createAdapter } from "@socket.io/redis-adapter";
+
 import { app, setUpMiddleware } from "./app.js";
 import { closePool, startPool } from "./config/db.js";
+import { closeRedis, startRedis } from "./config/redis.js";
 import { env } from "./config/env.js";
+import { createSocketServer } from "./realtime/socket.js";
 import { logger } from "./utils/logger.js";
+import { resolve } from "node:path";
 
 const shutdownTimeoutMs = 30_000;
 
@@ -10,7 +17,21 @@ const startServer = async (): Promise<void> => {
 
   await startPool();
 
-  const server = app.listen(env.PORT, () => {
+  const redisClients = await startRedis();
+
+  const httpServer = createServer(app);
+  const io = createSocketServer(httpServer);
+
+  io.adapter(
+    createAdapter(redisClients.publisher, redisClients.subscriber, {
+      key: "leaderboard",
+      publishOnSpecificResponseChannel: true,
+    }),
+  );
+
+  app.locals.io = io;
+
+  httpServer.listen(env.PORT, () => {
     logger.success(`Server listening on port ${env.PORT}`);
   });
 
@@ -22,6 +43,7 @@ const startServer = async (): Promise<void> => {
     }
 
     isShuttingDown = true;
+
     logger.info(`Received ${signal}; shutting down gracefully.`);
 
     const forceExitTimer = setTimeout(() => {
@@ -31,20 +53,25 @@ const startServer = async (): Promise<void> => {
 
     forceExitTimer.unref();
 
-    server.close((serverError) => {
-      void (async () => {
-        if (serverError) {
-          logger.error("Error while closing HTTP server.", serverError);
-        }
-        try {
-          await closePool();
-          process.exit(serverError ? 1 : 0);
-        } catch (error) {
-          logger.error("Error during graceful shutdown.", error);
-          process.exit(1);
-        }
-      })();
-    });
+    void (async () => {
+      try {
+        await new Promise<void>((resolve) => {
+          io.close(() => resolve());
+        });
+
+        await closeRedis(redisClients);
+        await new Promise<void>((resolve, reject) => {
+          httpServer.close((serverError) =>
+            serverError ? reject(serverError) : resolve(),
+          );
+        });
+        await closePool();
+        process.exit(0);
+      } catch (error) {
+        logger.error("Error during graceful shutdown.", error);
+        process.exit(1);
+      }
+    })();
   };
 
   process.once("SIGINT", () => shutdown("SIGINT"));

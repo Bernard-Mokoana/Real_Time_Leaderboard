@@ -12,7 +12,7 @@ const environmentSchema = z.object({
     .string()
     .url("DATABASE_URL must be a valid PostgreSQL connection URL"),
 
-  REDIS_URL: z.string().url().optional(),
+  REDIS_URL: z.string().url("REDIS_URL must be a valid Redis URL"),
 
   JWT_SECRET: z
     .string()

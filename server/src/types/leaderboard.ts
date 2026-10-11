@@ -62,3 +62,10 @@ export type LeaderboardRow = {
   total_xp: string;
   last_earned: Date | null;
 };
+
+export type LeaderboardUpdateEvent = {
+  userId: string;
+  xpDelta: number;
+  totalXp: number;
+  occurredAt: string;
+};
