@@ -9,6 +9,7 @@ import { env } from "./config/env.js";
 import { createSocketServer } from "./realtime/socket.js";
 import { logger } from "./utils/logger.js";
 import { resolve } from "node:path";
+import { rebuildGlobalLeaderboardCache } from "./service/leaderboard-cache-sync.service.js";
 
 const shutdownTimeoutMs = 30_000;
 
@@ -18,6 +19,10 @@ const startServer = async (): Promise<void> => {
   await startPool();
 
   const redisClients = await startRedis();
+
+  await rebuildGlobalLeaderboardCache(redisClients.publisher);
+
+  app.locals.redis = redisClients.publisher;
 
   const httpServer = createServer(app);
   const io = createSocketServer(httpServer);

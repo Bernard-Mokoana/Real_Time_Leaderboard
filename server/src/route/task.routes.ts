@@ -6,6 +6,9 @@ import { awardXp } from "../service/award-xp.service.js";
 
 import type { RealtimeServer } from "../types/types.js";
 import { GLOBAL_LEADERBOARD_ROOM } from "../realtime/socket.js";
+import type Redis from "ioredis";
+import { updateCachedScore } from "../service/leaderboard-cache.service.js";
+import { logger } from "../utils/logger.js";
 
 export const taskRouter = Router();
 
@@ -26,6 +29,21 @@ taskRouter.post("/:taskId/complete", requireAuth, async (req, res) => {
     taskId,
     referenceId,
   });
+
+  if (!result.wasAlreadyProcessed) {
+    const redis = req.app.locals.redis as Redis | undefined;
+
+    if (redis) {
+      try {
+        await updateCachedScore(redis, {
+          userId: result.score.userId,
+          totalXp: result.score.totalXp,
+        });
+      } catch (error) {
+        logger.error("Unable to update Redis leaderboard cache.", error);
+      }
+    }
+  }
 
   const io = req.app.locals.io as RealtimeServer | undefined;
 

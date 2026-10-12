@@ -69,3 +69,9 @@ export type LeaderboardUpdateEvent = {
   totalXp: number;
   occurredAt: string;
 };
+
+export type CachedLeaderboardEntry = {
+  userId: string;
+  totalXp: number;
+  rank: number;
+};

@@ -4,12 +4,12 @@ import { Server } from "socket.io";
 import { env } from "../config/env.js";
 import { verifyAccessToken } from "../service/token.service.js";
 import { logger } from "../utils/logger.js";
-import {
+import type {
   ClientToServerEvents,
-  type InterServerEvents,
-  type RealtimeServer,
-  type ServerToClientEvents,
-  type SocketData,
+  InterServerEvents,
+  RealtimeServer,
+  ServerToClientEvents,
+  SocketData,
 } from "../types/types.js";
 
 export const GLOBAL_LEADERBOARD_ROOM = "leaderboard:global";

@@ -9,3 +9,8 @@ export type ScoreRow = {
   total_xp: string;
   last_earned: Date | null;
 };
+
+export type ScoreCachedRow = {
+  user_id: string;
+  total_xp: string;
+};
