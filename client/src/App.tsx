@@ -16,6 +16,18 @@ import { Leaderboard } from "./components/Leaderboard";
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected";
 
+const getSocketOrigin = (): string | undefined => {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (!apiBaseUrl) {
+    return undefined;
+  }
+
+  const apiOrigin = new URL(apiBaseUrl, window.location.origin).origin;
+
+  return apiOrigin === window.location.origin ? undefined : apiOrigin;
+};
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -71,6 +83,7 @@ export default function App() {
     }
 
     let active = true;
+    setPage(null);
     setPageLoading(true);
     setPageError(null);
 
@@ -106,13 +119,25 @@ export default function App() {
       return;
     }
 
-    const socket = io({ withCredentials: true });
+    let hasConnected = false;
+    const socketOrigin = getSocketOrigin();
+    const socket = socketOrigin
+      ? io(socketOrigin, { withCredentials: true })
+      : io({ withCredentials: true });
     setRealtimeStatus("connecting");
     setRealtimeError(null);
 
     socket.on("connect", () => {
+      const reconnected = hasConnected;
+      hasConnected = true;
       setRealtimeStatus("connected");
       setRealtimeError(null);
+
+      if (reconnected) {
+        setCursor(null);
+        setPreviousCursors([]);
+        setRefreshVersion((version) => version + 1);
+      }
     });
     socket.on("disconnect", () => {
       setRealtimeStatus("disconnected");
@@ -200,8 +225,8 @@ export default function App() {
   }
 
   return (
-    <main>
-      <header>
+    <main className="page">
+      <header className="page-header">
         <h1>Leaderboard</h1>
         <p>
           Signed in as {user.firstName} {user.lastName} ({user.email})

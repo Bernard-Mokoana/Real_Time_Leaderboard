@@ -4,6 +4,7 @@ import { createAdapter } from "@socket.io/redis-adapter";
 
 import { app, setUpMiddleware } from "./app.js";
 import { closePool, startPool } from "./config/db.js";
+import { applySchema } from "./config/schema.js";
 import { closeRedis, startRedis } from "./config/redis.js";
 import { env } from "./config/env.js";
 import { createSocketServer } from "./realtime/socket.js";
@@ -17,6 +18,7 @@ const startServer = async (): Promise<void> => {
   setUpMiddleware();
 
   await startPool();
+  await applySchema();
 
   const redisClients = await startRedis();
 

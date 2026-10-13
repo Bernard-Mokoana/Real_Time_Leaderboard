@@ -40,7 +40,7 @@ export function AuthForm({
   };
 
   return (
-    <main>
+    <main className="page auth-page">
       <h1>Leaderboard</h1>
       <h2>{isRegistering ? "Create an account" : "Sign in"}</h2>
 

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users_email_collisions (
     user_id  UUID PRIMARY KEY,
     original_email  TEXT NOT NULL,
     kept_user_id  UUID NOT NULL,
-    resolved_at  TIMESTAMP_TZ NOT NULL DEFAULT now()
+    resolved_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 WITH ranked AS (

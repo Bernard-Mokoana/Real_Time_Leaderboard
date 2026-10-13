@@ -12,11 +12,11 @@ type ApiErrorResponse = {
   error?: {
     message?: string;
   };
-};
+} | null;
 
 export const getErrorMessage = (error: unknown, fallback: string): string => {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data.error?.message || error.message || fallback;
+    return error.response?.data?.error?.message || error.message || fallback;
   }
 
   return error instanceof Error ? error.message : fallback;
