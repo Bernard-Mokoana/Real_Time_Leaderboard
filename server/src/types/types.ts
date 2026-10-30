@@ -31,3 +31,7 @@ export type RealtimeServer = Server<
   InterServerEvents,
   SocketData
 >;
+
+export type MigrationRow = {
+  filename: string;
+};
