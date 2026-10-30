@@ -2,7 +2,7 @@ import type { Redis } from "ioredis";
 
 import type { CachedLeaderboardEntry } from "../types/leaderboard.js";
 
-export const GLOBAL_LEADERBOARD_KEY = "leaderboard:gloabal:v1";
+export const GLOBAL_LEADERBOARD_KEY = "leaderboard:global:v1";
 
 export const updateCachedScore = async (
   redis: Redis,
@@ -77,7 +77,7 @@ export const getCachedUserRank = async (
   // ZCOUNT gives the number of users strictly above this score.
   const usersWithHigherScores = await redis.zcount(
     GLOBAL_LEADERBOARD_KEY,
-    `(${rawScore})`,
+    `(${rawScore}`,
     "+inf",
   );
 

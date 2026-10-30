@@ -13,7 +13,7 @@ leaderboardRouter.get("/", requireAuth, async (req, res) => {
 
   const leaderboard = await getGlobalLeaderboard({
     limit: query.limit,
-    cursor: query.cursor,
+    ...(query.cursor ? { cursor: query.cursor } : {}),
     viewerUserId: req.auth!.userId,
   });
 
