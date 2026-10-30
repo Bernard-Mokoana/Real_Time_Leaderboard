@@ -3,16 +3,7 @@ import type {
   LeaderboardEventRow,
 } from "../types/leaderboard.js";
 import type { DatabaseClient } from "../types/types.js";
-
-const toLeaderboardEvent = (row: LeaderboardEventRow): LeaderboardEvent => ({
-  id: row.id,
-  userId: row.user_id,
-  taskId: row.task_id,
-  xpDelta: row.xp_delta,
-  eventType: row.event_type,
-  referenceId: row.reference_id,
-  createdAt: row.created_at,
-});
+import { toLeaderboardEvent } from "../utils/mappers.js";
 
 export const leaderboardEventRepository = {
   async createIfAbsent(

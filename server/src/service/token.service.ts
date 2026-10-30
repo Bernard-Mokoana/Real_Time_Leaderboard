@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { AppError } from "../errors/app_errors.js";
 import type { AccessTokenPayload } from "../types/auth.js";
+import type { CookieOptions, Response } from "express";
 
 const getJwtSecret = (): string => {
   if (!env.JWT_SECRET) {
@@ -47,4 +48,18 @@ export const verifyAccessToken = (token: string): AccessTokenPayload => {
       code: "UNAUTHENTICATED",
     });
   }
+};
+
+export const authCookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+};
+
+export const setAccessTokenCookie = (
+  response: Response,
+  userId: string,
+): void => {
+  response.cookie("access_token", createAccessToken(userId), authCookieOptions);
 };

@@ -4,21 +4,14 @@ import z from "zod";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { awardXp } from "../service/award-xp.service.js";
 
+import type { Redis } from "ioredis";
 import type { RealtimeServer } from "../types/types.js";
 import { GLOBAL_LEADERBOARD_ROOM } from "../realtime/socket.js";
-import type Redis from "ioredis";
 import { updateCachedScore } from "../service/leaderboard-cache.service.js";
 import { logger } from "../utils/logger.js";
+import { taskParamSchema, completeTaskSchema } from "../model/task.model.js";
 
 export const taskRouter = Router();
-
-const taskParamSchema = z.object({
-  taskId: z.string().uuid(),
-});
-
-const completeTaskSchema = z.object({
-  referenceId: z.string().uuid(),
-});
 
 taskRouter.post("/:taskId/complete", requireAuth, async (req, res) => {
   const { taskId } = taskParamSchema.parse(req.params);

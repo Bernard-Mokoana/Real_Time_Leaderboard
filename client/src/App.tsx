@@ -16,6 +16,18 @@ import { Leaderboard } from "./components/Leaderboard";
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected";
 
+let currentUserRequest: Promise<User> | undefined;
+
+const getCurrentUser = (): Promise<User> => {
+  if (!currentUserRequest) {
+    currentUserRequest = authApi.currentUser().finally(() => {
+      currentUserRequest = undefined;
+    });
+  }
+
+  return currentUserRequest;
+};
+
 const getSocketOrigin = (): string | undefined => {
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,6 +42,7 @@ const getSocketOrigin = (): string | undefined => {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  // Keeps the startup screen visible only while the initial session check is pending.
   const [checkingSession, setCheckingSession] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSubmitting, setAuthSubmitting] = useState(false);
@@ -46,8 +59,7 @@ export default function App() {
   useEffect(() => {
     let active = true;
 
-    authApi
-      .currentUser()
+    getCurrentUser()
       .then((currentUser) => {
         if (active) {
           setUser(currentUser);

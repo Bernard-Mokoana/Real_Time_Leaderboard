@@ -5,16 +5,7 @@ import type {
   LeaderboardEntry,
   LeaderboardRow,
 } from "../types/leaderboard.js";
-
-const toLeaderboardEntry = (row: LeaderboardRow): LeaderboardEntry => ({
-  rank: Number(row.rank),
-  userId: row.user_id,
-  firstName: row.first_name,
-  lastName: row.last_name,
-  avatarUrl: row.avatar_url,
-  totalXp: Number(row.total_xp),
-  lastEarned: row.last_earned,
-});
+import { toLeaderboardEntry } from "../utils/mappers.js";
 
 export const leaderboardRepository = {
   async findPage(

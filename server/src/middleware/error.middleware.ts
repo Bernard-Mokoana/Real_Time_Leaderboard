@@ -46,10 +46,13 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
 
   const appError = toAppError(error);
 
-  logger.error(
-    `${req.method} failed with ${appError.statusCode} ${appError.code}`,
-    error,
-  );
+  const logMessage = `${req.method} failed with ${appError.statusCode} ${appError.code}`;
+
+  if (appError.statusCode >= 500) {
+    logger.error(logMessage, error);
+  } else {
+    logger.warn(logMessage);
+  }
 
   const response: {
     error: {

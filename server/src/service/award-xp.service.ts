@@ -4,20 +4,7 @@ import { scoreRepository } from "../repositories/score.repository.js";
 import { taskRepository } from "../repositories/task.repository.js";
 import type { AwardXpInput, AwardXpResult } from "../types/leaderboard.js";
 
-export class TaskNotFoundError extends Error {
-  constructor(taskId: string) {
-    super(`Task "${taskId}" does not exist.`);
-    this.name = "TaskNotFoundError";
-  }
-}
-
-export class ScoreNotFoundError extends Error {
-  constructor(userId: string) {
-    super(`Score for user "${userId}" does not exist.`);
-    this.name = "ScoreNotFoundError";
-  }
-}
-
+import { TaskNotFoundError } from "../utils/error.util.js";
 export const awardXp = async (input: AwardXpInput): Promise<AwardXpResult> => {
   return withTransaction(async (client) => {
     const task = await taskRepository.findById(client, input.taskId);

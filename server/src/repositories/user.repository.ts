@@ -1,15 +1,7 @@
 import type { DatabaseClient } from "../types/types.js";
 import type { AuthUser, UserWithPassword, UserRow } from "../types/user.js";
 
-const toUserWithPassword = (row: UserRow): UserWithPassword => ({
-  id: row.id,
-  firstName: row.first_name,
-  lastName: row.last_name,
-  email: row.email,
-  passwordHash: row.password_hash,
-  avatarUrl: row.avatar_url,
-  createdAt: row.created_at,
-});
+import { toUserWithPassword } from "../utils/mappers.js";
 
 const withoutPassword = (user: UserWithPassword): AuthUser => {
   const { passwordHash: _passwordHash, ...safeUser } = user;

@@ -4,12 +4,9 @@ import { z } from "zod";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getGlobalLeaderboard } from "../service/leaderboard.service.js";
 
-export const leaderboardRouter = Router();
+import { leaderboardQuerySchema } from "../model/leaderboard.model.js";
 
-const leaderboardQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(25),
-  cursor: z.string().min(1).optional(),
-});
+export const leaderboardRouter = Router();
 
 leaderboardRouter.get("/", requireAuth, async (req, res) => {
   const query = leaderboardQuerySchema.parse(req.query);

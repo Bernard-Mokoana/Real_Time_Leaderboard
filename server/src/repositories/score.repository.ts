@@ -1,12 +1,7 @@
-import type { PoolClient } from "pg";
 import type { Score, ScoreRow } from "../types/score.js";
 import type { DatabaseClient } from "../types/types.js";
 
-const toScore = (row: ScoreRow): Score => ({
-  userId: row.user_id,
-  totalXp: Number(row.total_xp),
-  lastEarned: row.last_earned,
-});
+import { toScore } from "../utils/mappers.js";
 
 export const scoreRepository = {
   async addXp(

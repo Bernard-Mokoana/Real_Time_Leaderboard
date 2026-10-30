@@ -5,7 +5,6 @@ import { pool } from "../config/db.js";
 import { logger } from "../utils/logger.js";
 import { GLOBAL_LEADERBOARD_KEY } from "./leaderboard-cache.service.js";
 import type { ScoreCachedRow } from "../types/score.js";
-import { error } from "node:console";
 
 export const rebuildGlobalLeaderboardCache = async (
   redis: Redis,
