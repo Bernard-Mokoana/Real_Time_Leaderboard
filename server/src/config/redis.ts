@@ -1,7 +1,8 @@
-import Redis from "ioredis";
+import { Redis } from "ioredis";
+
 import { env } from "./env.js";
-import { logger } from "../utils/logger.js";
 import type { RedisClients } from "../types/types.js";
+import { logger } from "../utils/logger.js";
 
 export const startRedis = async (): Promise<RedisClients> => {
   const publisher = new Redis(env.REDIS_URL, {
@@ -11,18 +12,18 @@ export const startRedis = async (): Promise<RedisClients> => {
 
   const subscriber = publisher.duplicate();
 
-  publisher.on("error", (error) => {
+  publisher.on("error", (error: Error) => {
     logger.error("Redis publisher error.", error);
   });
 
-  subscriber.on("error", (error) => {
+  subscriber.on("error", (error: Error) => {
     logger.error("Redis subscriber error.", error);
   });
 
   try {
     await Promise.all([publisher.connect(), subscriber.connect()]);
 
-    logger.success("Redis connections started");
+    logger.success("Redis connections started.");
 
     return {
       publisher,
