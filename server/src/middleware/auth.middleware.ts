@@ -36,6 +36,7 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
 
   try {
     req.auth = verifyAccessToken(token);
+    next();
   } catch (error) {
     next(error);
   }
