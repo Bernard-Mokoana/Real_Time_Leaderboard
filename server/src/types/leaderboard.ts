@@ -75,3 +75,27 @@ export type CachedLeaderboardEntry = {
   totalXp: number;
   rank: number;
 };
+
+export type LeaderboardProfile = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+};
+
+export type LiveLeaderboardEntry = LeaderboardProfile & {
+  rank: number;
+  totalXp: number;
+};
+
+export type LiveLeaderboard = {
+  entries: LiveLeaderboardEntry[];
+  totalParticipants: number;
+};
+
+export type LeaderboardProfileRow = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+};
