@@ -6,9 +6,16 @@ import { logger } from "../utils/logger.js";
 
 const { Pool } = pg;
 
+const TIMESTAMP_OID = 1114;
+pg.types.setTypeParser(
+  TIMESTAMP_OID,
+  (value: string) => new Date(`${value.replace(" ", "T")}Z`),
+);
+
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
   ssl: env.NODE_ENV === "production" ? { rejectUnauthorized: true } : false,
+  options: "-c TimeZone=UTC",
 });
 
 pool.on("error", (error) => {
