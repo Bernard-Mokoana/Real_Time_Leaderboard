@@ -1,87 +1,109 @@
 import type { Redis } from "ioredis";
 
 import type { CachedLeaderboardEntry } from "../types/leaderboard.js";
+import { decodeTotalXp, encodeRankingScore } from "../utils/ranking-score.js";
 
-export const GLOBAL_LEADERBOARD_KEY = "leaderboard:global:v1";
+export const GLOBAL_LEADERBOARD_KEY = "leaderboard:global:v2";
+export const LEGACY_GLOBAL_LEADERBOARD_KEY = "leaderboard:global:v1";
 
-export const updateCachedScore = async (
-  redis: Redis,
-  input: {
-    userId: string;
-    totalXp: number;
-  },
-): Promise<void> => {
-  if (!Number.isSafeInteger(input.totalXp) || input.totalXp < 0) {
-    throw new Error("Leaderboard score be a safe non-negative integer.");
-  }
+let cacheIsStale = true;
 
-  await redis.zadd(GLOBAL_LEADERBOARD_KEY, input.totalXp, input.userId);
+export const markCacheStale = (): void => {
+  cacheIsStale = true;
 };
 
-export const getTopCachedScores = async (
+export const markCacheFresh = (): void => {
+  cacheIsStale = false;
+};
+
+export const isCacheReadable = (): boolean => !cacheIsStale;
+
+export const upsertCachedScore = async (
   redis: Redis,
-  limit: number,
-): Promise<CachedLeaderboardEntry[]> => {
-  const values = await redis.zrevrange(
+  input: { userId: string; totalXp: number; lastEarned: Date | null },
+): Promise<void> => {
+  const score = encodeRankingScore(input.totalXp, input.lastEarned);
+  await redis.zadd(GLOBAL_LEADERBOARD_KEY, "GT", score, input.userId);
+};
+
+export const addCachedUser = async (
+  redis: Redis,
+  userId: string,
+): Promise<void> => {
+  await redis.zadd(
     GLOBAL_LEADERBOARD_KEY,
-    0,
-    limit - 1,
-    "WITHSCORES",
+    "NX",
+    encodeRankingScore(0, null),
+    userId,
   );
+};
 
+const parseRange = (
+  values: string[],
+  firstRank: number,
+): CachedLeaderboardEntry[] => {
   const entries: CachedLeaderboardEntry[] = [];
-
-  let previousScore: number | null = null;
-  let currentRank = 0;
 
   for (let index = 0; index < values.length; index += 2) {
     const userId = values[index];
     const rawScore = values[index + 1];
 
-    if (!userId || !rawScore) {
+    if (!userId || rawScore === undefined) {
       continue;
-    }
-
-    const totalXp = Number(rawScore);
-    const position = index / 2 + 1;
-
-    // Equal scores share a competition rank: 1, 1, 3
-    if (totalXp !== previousScore) {
-      currentRank = position;
-      previousScore = totalXp;
     }
 
     entries.push({
       userId,
-      totalXp,
-      rank: currentRank,
+      totalXp: decodeTotalXp(Number(rawScore)),
+      rank: firstRank + index / 2,
     });
   }
 
   return entries;
 };
 
+export const getCachedRange = async (
+  redis: Redis,
+  start: number,
+  stop: number,
+): Promise<CachedLeaderboardEntry[]> => {
+  const values = await redis.zrevrange(
+    GLOBAL_LEADERBOARD_KEY,
+    start,
+    stop,
+    "WITHSCORES",
+  );
+
+  return parseRange(values, start + 1);
+};
+
 export const getCachedUserRank = async (
   redis: Redis,
   userId: string,
 ): Promise<CachedLeaderboardEntry | null> => {
-  const rawScore = await redis.zscore(GLOBAL_LEADERBOARD_KEY, userId);
+  const [position, rawScore] = await Promise.all([
+    redis.zrevrank(GLOBAL_LEADERBOARD_KEY, userId),
+    redis.zscore(GLOBAL_LEADERBOARD_KEY, userId),
+  ]);
 
-  if (rawScore === null) {
+  if (position === null || rawScore === null) {
     return null;
   }
 
-  const totalXp = Number(rawScore);
+  return {
+    userId,
+    totalXp: decodeTotalXp(Number(rawScore)),
+    rank: position + 1,
+  };
+};
 
-  // ZREVRANK gives ordinal position, not shared competition rank.
-  // ZCOUNT gives the number of users strictly above this score.
-  const usersWithHigherScores = await redis.zcount(
-    GLOBAL_LEADERBOARD_KEY,
-    `(${rawScore}`,
-    "+inf",
-  );
+export const getCachedRank = async (
+  redis: Redis,
+  userId: string,
+): Promise<number | null> => {
+  const position = await redis.zrevrank(GLOBAL_LEADERBOARD_KEY, userId);
 
-  return { userId, totalXp, rank: usersWithHigherScores + 1 };
+  return position === null ? null : position + 1;
 };
 
 export const removeCachedUser = async (
