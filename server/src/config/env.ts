@@ -6,7 +6,7 @@ const environmentSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
 
-  PORT: z.coerce.number().int().min(1).max(65_535).default(8001),
+  PORT: z.coerce.number().int().min(0).max(65_535).default(8001),
 
   DATABASE_URL: z
     .string()
@@ -21,6 +21,8 @@ const environmentSchema = z.object({
   JWT_EXPIRES_IN: z.enum(["15m", "1h", "8h", "1d"]).default("1h"),
 
   CORS_ORIGIN: z.string().url().optional(),
+
+  TRUST_PROXY: z.coerce.number().int().min(0).max(10).optional(),
 });
 
 const parsedEnvironment = environmentSchema.safeParse(process.env);
