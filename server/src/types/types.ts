@@ -6,6 +6,8 @@ import type { LeaderboardUpdateEvent } from "./leaderboard.js";
 
 export type LogLevel = "info" | "warn" | "error" | "success" | "debug";
 
+export type SnapshotTimeframe = "daily" | "weekly";
+
 export type DatabaseClient = Pick<PoolClient, "query">;
 
 export type RedisClients = {
@@ -34,4 +36,9 @@ export type RealtimeServer = Server<
 
 export type MigrationRow = {
   filename: string;
+};
+
+export type CaptureResult = {
+  inserted: number;
+  alreadyCaptured: boolean;
 };

@@ -99,3 +99,7 @@ export type LeaderboardProfileRow = {
   last_name: string;
   avatar_url: string | null;
 };
+
+export type CompleteTaskResult = AwardXpResult & {
+  rank: number | null;
+};
