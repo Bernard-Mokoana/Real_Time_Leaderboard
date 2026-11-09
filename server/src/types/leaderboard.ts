@@ -112,3 +112,16 @@ export type SnapshotRow = {
   xp_earned: string;
   final_rank: number;
 };
+
+export type LeaderboardNeighbourhood = {
+  viewer: LeaderboardEntry | null;
+  above: LeaderboardEntry[];
+  below: LeaderboardEntry[];
+};
+
+export type SnapshotPage = {
+  timeframe: string;
+  periodKey: string;
+  entries: LeaderboardEntry[];
+  nextCursor: string | null;
+};
