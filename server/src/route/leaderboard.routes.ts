@@ -1,17 +1,16 @@
 import { Router } from "express";
-import { z } from "zod";
-
-import type { Redis } from "ioredis";
 
 import { requireAuth } from "../middleware/auth.middleware.js";
-import { getGlobalLeaderboard } from "../service/leaderboard.service.js";
-import { getLiveTopLeaderboard } from "../service/live-leaderboard.service.js";
-
 import {
   leaderboardQuerySchema,
-  topLeaderboardQuerySchema,
+  neighbourhoodQuerySchema,
+  snapshotQuerySchema,
 } from "../model/leaderboard.model.js";
-import { AppError } from "../errors/app_errors.js";
+import {
+  getGlobalLeaderboard,
+  getLeaderboardNeighbourhood,
+  getSnapshotLeaderboard,
+} from "../service/leaderboard.service.js";
 
 export const leaderboardRouter = Router();
 
@@ -29,23 +28,26 @@ leaderboardRouter.get("/", requireAuth, async (req, res) => {
   });
 });
 
-leaderboardRouter.get("/top", requireAuth, async (req, res) => {
-  const { limit } = topLeaderboardQuerySchema.parse(req.query);
+leaderboardRouter.get("/me", requireAuth, async (req, res) => {
+  const { window } = neighbourhoodQuerySchema.parse(req.query);
 
-  const redis = req.app.locals.redis as Redis | undefined;
-
-  if (!redis) {
-    throw new AppError({
-      message: "Live leaderboard is temporarily unavailable.",
-      statusCode: 503,
-      code: "LIVE_LEADERBOARD_UNAVAILABLE",
-    });
-  }
-
-  const leaderboard = await getLiveTopLeaderboard({
-    redis,
-    limit,
+  const neighbourhood = await getLeaderboardNeighbourhood({
+    viewerUserId: req.auth!.userId,
+    window,
   });
 
-  res.status(200).json({ data: leaderboard });
+  res.status(200).json({ data: neighbourhood });
+});
+
+leaderboardRouter.get("/snapshots", requireAuth, async (req, res) => {
+  const query = snapshotQuerySchema.parse(req.query);
+
+  const snapshot = await getSnapshotLeaderboard({
+    timeframe: query.timeframe,
+    periodKey: query.periodKey,
+    limit: query.limit,
+    ...(query.cursor ? { cursor: query.cursor } : {}),
+  });
+
+  res.status(200).json({ data: snapshot });
 });
