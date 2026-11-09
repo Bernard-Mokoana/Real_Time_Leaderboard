@@ -11,3 +11,11 @@ export type Task = {
   taskType: string;
   xpValue: number;
 };
+
+export type TaskWithStatusRow = TaskRow & {
+  completed: boolean;
+};
+
+export type TaskWithStatus = {
+  completed: boolean;
+};
