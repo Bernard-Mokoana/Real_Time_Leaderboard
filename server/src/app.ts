@@ -1,4 +1,5 @@
 import express from "express";
+import type { Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -10,10 +11,14 @@ import {
 import { apiRouter } from "./route/index.js";
 import { logger } from "./utils/logger.js";
 
-export const app = express();
+export const createApp = (): Express => {
+  const app = express();
 
-export const setUpMiddleware = (): void => {
   app.disable("x-powered-by");
+
+  if (env.TRUST_PROXY !== undefined) {
+    app.set("trust proxy", env.TRUST_PROXY);
+  }
 
   app.use(
     cors({
@@ -34,4 +39,6 @@ export const setUpMiddleware = (): void => {
 
   app.use(notFoundHandler);
   app.use(errorHandler);
+
+  return app;
 };
