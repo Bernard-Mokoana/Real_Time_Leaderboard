@@ -1,7 +1,10 @@
-import type { RequestHandler } from "express";
+import type { Request, RequestHandler } from "express";
 
 import { AppError } from "../errors/app_errors.js";
-import { verifyAccessToken } from "../service/token.service.js";
+import {
+  isAccessTokenRevoked,
+  verifyAccessToken,
+} from "../service/token.service.js";
 
 const getBearerToken = (
   authorizationHeader: string | undefined,
@@ -19,23 +22,37 @@ const getBearerToken = (
   return token;
 };
 
-export const requireAuth: RequestHandler = (req, _res, next) => {
+export const getRequestToken = (req: Request): string | null => {
   const token =
-    getBearerToken(req.get("authorization")) ?? req.cookies.access_token;
+    getBearerToken(req.get("authorization")) ?? req.cookies?.access_token;
 
-  if (typeof token !== "string") {
-    next(
-      new AppError({
-        message: "Authentication is required.",
-        statusCode: 401,
-        code: "UNAUTHENTICATED",
-      }),
-    );
+  return typeof token === "string" ? token : null;
+};
+
+const unauthenticated = (): AppError =>
+  new AppError({
+    message: "Authentication is required.",
+    statusCode: 401,
+    code: "UNAUTHENTICATED",
+  });
+
+export const requireAuth: RequestHandler = async (req, _res, next) => {
+  const token = getRequestToken(req);
+
+  if (token === null) {
+    next(unauthenticated());
     return;
   }
 
   try {
-    req.auth = verifyAccessToken(token);
+    const payload = verifyAccessToken(token);
+
+    if (await isAccessTokenRevoked(payload.tokenId)) {
+      next(unauthenticated());
+      return;
+    }
+
+    req.auth = payload;
     next();
   } catch (error) {
     next(error);
