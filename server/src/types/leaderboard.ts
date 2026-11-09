@@ -103,3 +103,12 @@ export type LeaderboardProfileRow = {
 export type CompleteTaskResult = AwardXpResult & {
   rank: number | null;
 };
+
+export type SnapshotRow = {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  xp_earned: string;
+  final_rank: number;
+};
