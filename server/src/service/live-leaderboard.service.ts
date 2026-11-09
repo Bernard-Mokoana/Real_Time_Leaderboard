@@ -64,7 +64,6 @@ export const getLiveTopLeaderboard = async (input: {
     resolved.staleUserIds.length > 0 &&
     resolved.entries.length < input.limit
   ) {
-    // Remove users deleted from PostgreSQL but still present in Redis.
     await Promise.all(
       resolved.staleUserIds.map((userId) =>
         removeCachedUser(input.redis, userId),
