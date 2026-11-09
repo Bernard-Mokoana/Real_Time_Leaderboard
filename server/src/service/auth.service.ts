@@ -56,7 +56,6 @@ export const registerUser = async (input: {
       return created;
     });
 
-    // After commit, best effort: keep the Redis board in step with PostgreSQL.
     const redis = getRedis();
 
     if (redis && isCacheReadable()) {

@@ -42,3 +42,9 @@ export type CaptureResult = {
   inserted: number;
   alreadyCaptured: boolean;
 };
+
+export type RebuildRow = {
+  user_id: string;
+  total_xp: string;
+  last_earned: Date | null;
+};
