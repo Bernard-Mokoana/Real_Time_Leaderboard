@@ -24,6 +24,7 @@ export type AwardXpInput = {
   userId: string;
   taskId: string;
   referenceId: string;
+  xpDelta?: number;
 };
 
 export type AwardXpResult = {
@@ -43,8 +44,7 @@ export type LeaderboardEntry = {
 };
 
 export type LeaderboardCursor = {
-  totalXp: number;
-  userId: string;
+  offset: number;
 };
 
 export type LeaderboardPage = {
@@ -67,7 +67,14 @@ export type LeaderboardUpdateEvent = {
   userId: string;
   xpDelta: number;
   totalXp: number;
+  rank: number | null;
   occurredAt: string;
+};
+
+export type LeaderboardSnapshotEvent = {
+  timeframe: "daily" | "weekly";
+  periodKey: string;
+  capturedAt: string;
 };
 
 export type CachedLeaderboardEntry = {

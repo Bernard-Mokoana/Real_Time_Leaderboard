@@ -218,6 +218,57 @@ tbody tr:hover {
   color: #624646;
 }
 
+.task-quiz {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #ded4d4;
+}
+
+.back-button {
+  min-height: auto;
+  margin-bottom: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #624646;
+  text-decoration: underline;
+}
+
+.back-button:hover:not(:disabled) {
+  background: transparent;
+}
+
+.question-list {
+  display: grid;
+  gap: 20px;
+  padding-left: 24px;
+}
+
+fieldset {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.answer-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+
+.answer-option input {
+  width: auto;
+  min-height: auto;
+}
+
 @media (max-width: 560px) {
   .page {
     width: calc(100% - 20px);

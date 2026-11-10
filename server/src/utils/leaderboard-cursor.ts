@@ -4,8 +4,7 @@ import { AppError } from "../errors/app_errors.js";
 import type { LeaderboardCursor } from "../types/leaderboard.js";
 
 const cursorSchema = z.object({
-  totalXp: z.number().int().safe().min(0),
-  userId: z.string().uuid(),
+  offset: z.number().int().safe().min(0),
 });
 
 export const encodeLeaderboardCursor = (cursor: LeaderboardCursor): string => {

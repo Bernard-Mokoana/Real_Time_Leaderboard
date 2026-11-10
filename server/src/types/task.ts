@@ -19,3 +19,8 @@ export type TaskWithStatusRow = TaskRow & {
 export type TaskWithStatus = {
   completed: boolean;
 };
+
+export type QuizAnswer = {
+  questionId: string;
+  answer: string;
+};

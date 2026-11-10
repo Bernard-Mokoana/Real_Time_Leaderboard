@@ -1,6 +1,11 @@
+import { pool } from "../config/db.js";
+import { taskRepository } from "../repositories/task.repository.js";
+import { TaskNotFoundError } from "../utils/error.util.js";
+import { scoreTaskQuiz } from "./task-quiz.service.js";
 import { getRealtimeServer, getRedis } from "../config/runtime.js";
 import { GLOBAL_LEADERBOARD_ROOM } from "../realtime/socket.js";
 import type { AwardXpInput, CompleteTaskResult } from "../types/leaderboard.js";
+import type { QuizAnswer } from "../types/task.js";
 import { logger } from "../utils/logger.js";
 import { awardXp } from "./award-xp.service.js";
 import {
@@ -11,9 +16,23 @@ import {
 } from "./leaderboard-cache.service.js";
 
 export const completeTask = async (
-  input: AwardXpInput,
+  input: AwardXpInput & { answers: QuizAnswer[] },
 ): Promise<CompleteTaskResult> => {
-  const result = await awardXp(input);
+  const task = await taskRepository.findById(pool, input.taskId);
+
+  if (!task) {
+    throw new TaskNotFoundError(input.taskId);
+  }
+
+  const correctAnswers = scoreTaskQuiz(input.answers);
+  const xpDelta = Math.floor((task.xpValue * correctAnswers) / 5);
+
+  const result = await awardXp({
+    userId: input.userId,
+    taskId: input.taskId,
+    referenceId: input.referenceId,
+    xpDelta,
+  });
 
   const redis = getRedis();
   let rank: number | null = null;

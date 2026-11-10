@@ -7,7 +7,7 @@ import type {
   LiveLeaderboardEntry,
 } from "../types/leaderboard.js";
 import {
-  getTopCachedScores,
+  getCachedRange,
   GLOBAL_LEADERBOARD_KEY,
   removeCachedUser,
 } from "./leaderboard-cache.service.js";
@@ -19,7 +19,7 @@ const resolveLiveLeaderboard = async (
   entries: LiveLeaderboardEntry[];
   staleUserIds: string[];
 }> => {
-  const cachedScores = await getTopCachedScores(redis, limit);
+  const cachedScores = await getCachedRange(redis, 0, limit - 1);
 
   const profiles = await userRepository.findLeaderboardProfilesByIds(
     pool,

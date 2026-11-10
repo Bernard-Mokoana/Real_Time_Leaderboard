@@ -11,10 +11,11 @@ import {
   leaderboardApi,
   type LeaderboardPage as LeaderboardPageData,
 } from "./api/leaderboard";
-import { tasksApi, type Task } from "./api/tasks";
+import { tasksApi, type Task, type TaskAnswer } from "./api/tasks";
 import { AuthForm } from "./components/AuthForm";
 import { Leaderboard } from "./components/Leaderboard";
 import { Tasks } from "./components/Tasks";
+import { TaskQuiz } from "./components/TaskQuiz";
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected";
 
@@ -58,6 +59,7 @@ export default function App() {
   const [tasksLoading, setTasksLoading] = useState(false);
   const [tasksError, setTasksError] = useState<string | null>(null);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [realtimeStatus, setRealtimeStatus] =
     useState<RealtimeStatus>("connecting");
   const [realtimeError, setRealtimeError] = useState<string | null>(null);
@@ -262,12 +264,26 @@ export default function App() {
     setCursor(previousCursor ?? null);
   };
 
-  const handleCompleteTask = async (taskId: string) => {
+  const handleCompleteTask = async (
+    answers: Record<string, string>,
+  ): Promise<{ awardedXp: number }> => {
+    if (!selectedTask) {
+      throw new Error("Select a task before submitting answers.");
+    }
+
+    const taskId = selectedTask.id;
     setCompletingTaskId(taskId);
     setTasksError(null);
 
     try {
-      await tasksApi.complete(taskId, crypto.randomUUID());
+      const completion = await tasksApi.complete(
+        taskId,
+        crypto.randomUUID(),
+        Object.entries(answers).map(([questionId, answer]): TaskAnswer => ({
+          questionId,
+          answer,
+        })),
+      );
       setTasks((currentTasks) =>
         currentTasks?.map((task) =>
           task.id === taskId ? { ...task, completed: true } : task,
@@ -276,8 +292,10 @@ export default function App() {
       setCursor(null);
       setPreviousCursors([]);
       setRefreshVersion((version) => version + 1);
+      return completion;
     } catch (error: unknown) {
       setTasksError(getErrorMessage(error, "Unable to complete the task."));
+      throw error;
     } finally {
       setCompletingTaskId(null);
     }
@@ -297,6 +315,8 @@ export default function App() {
     );
   }
 
+  const nextTask = tasks?.find((task) => !task.completed) ?? null;
+
   return (
     <main className="page">
       <header className="page-header">
@@ -306,6 +326,13 @@ export default function App() {
         </p>
         <button type="button" onClick={handleLogout}>
           Sign out
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedTask(nextTask)}
+          disabled={!nextTask}
+        >
+          {tasksLoading ? "Loading tasks..." : "Take a quiz"}
         </button>
       </header>
 
@@ -323,13 +350,26 @@ export default function App() {
         onNextPage={handleNextPage}
         onPreviousPage={handlePreviousPage}
       />
-      <Tasks
-        tasks={tasks}
-        loading={tasksLoading}
-        error={tasksError}
-        completingTaskId={completingTaskId}
-        onComplete={handleCompleteTask}
-      />
+      {selectedTask ? (
+        <TaskQuiz
+          task={selectedTask}
+          completing={completingTaskId === selectedTask.id}
+          error={tasksError}
+          onCancel={() => {
+            setSelectedTask(null);
+            setTasksError(null);
+          }}
+          onComplete={handleCompleteTask}
+        />
+      ) : (
+        <Tasks
+          tasks={tasks}
+          loading={tasksLoading}
+          error={tasksError}
+          completingTaskId={completingTaskId}
+          onSelect={setSelectedTask}
+        />
+      )}
     </main>
   );
 }

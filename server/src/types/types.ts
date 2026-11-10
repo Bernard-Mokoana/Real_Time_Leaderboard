@@ -2,7 +2,10 @@ import type { Redis } from "ioredis";
 import { Server } from "socket.io";
 
 import type { PoolClient } from "pg";
-import type { LeaderboardUpdateEvent } from "./leaderboard.js";
+import type {
+  LeaderboardSnapshotEvent,
+  LeaderboardUpdateEvent,
+} from "./leaderboard.js";
 
 export type LogLevel = "info" | "warn" | "error" | "success" | "debug";
 
@@ -19,12 +22,15 @@ export type ClientToServerEvents = {};
 
 export type ServerToClientEvents = {
   "leaderboard:updated": (payload: LeaderboardUpdateEvent) => void;
+  "leaderboard:snapshot": (payload: LeaderboardSnapshotEvent) => void;
 };
 
 export type InterServerEvents = {};
 
 export type SocketData = {
   userId: string;
+  tokenId: string;
+  expiresAt: number;
 };
 
 export type RealtimeServer = Server<

@@ -5,7 +5,7 @@ type TasksProps = {
   loading: boolean;
   error: string | null;
   completingTaskId: string | null;
-  onComplete: (taskId: string) => void;
+  onSelect: (task: Task) => void;
 };
 
 export function Tasks({
@@ -13,7 +13,7 @@ export function Tasks({
   loading,
   error,
   completingTaskId,
-  onComplete,
+  onSelect,
 }: TasksProps) {
   return (
     <section className="tasks" aria-labelledby="tasks-heading">
@@ -38,14 +38,14 @@ export function Tasks({
                 </div>
                 <button
                   type="button"
-                  onClick={() => onComplete(task.id)}
+                  onClick={() => onSelect(task)}
                   disabled={task.completed || completing}
                 >
                   {task.completed
                     ? "Completed"
                     : completing
                       ? "Completing..."
-                      : "Complete task"}
+                      : "Start task"}
                 </button>
               </li>
             );

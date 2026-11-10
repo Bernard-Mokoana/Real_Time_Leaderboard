@@ -46,12 +46,13 @@ taskRouter.get("/:taskId", requireAuth, async (req, res) => {
 
 taskRouter.post("/:taskId/complete", requireAuth, async (req, res) => {
   const { taskId } = taskParamSchema.parse(req.params);
-  const { referenceId } = completeTaskSchema.parse(req.body);
+  const { referenceId, answers } = completeTaskSchema.parse(req.body);
 
   const result = await completeTask({
     userId: req.auth!.userId,
     taskId,
     referenceId,
+    answers,
   });
 
   res.status(result.wasAlreadyProcessed ? 200 : 201).json({

@@ -16,7 +16,7 @@ export const awardXp = async (input: AwardXpInput): Promise<AwardXpResult> => {
     const newEvent = await leaderboardEventRepository.createIfAbsent(client, {
       userId: input.userId,
       taskId: task.id,
-      xpDelta: task.xpValue,
+      xpDelta: input.xpDelta ?? task.xpValue,
       eventType: "task_completed",
       referenceId: input.referenceId,
     });

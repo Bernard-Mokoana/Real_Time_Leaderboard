@@ -8,6 +8,11 @@ export type Task = {
   completed: boolean;
 };
 
+export type TaskAnswer = {
+  questionId: string;
+  answer: string;
+};
+
 type TaskListResponse = {
   data: Task[];
   meta: {
@@ -19,6 +24,9 @@ type TaskListResponse = {
 
 type CompleteTaskResponse = {
   data: {
+    event: {
+      xpDelta: number;
+    };
     wasAlreadyProcessed: boolean;
   };
 };
@@ -32,9 +40,19 @@ export const tasksApi = {
     return response.data.data;
   },
 
-  async complete(taskId: string, referenceId: string): Promise<void> {
-    await apiClient.post<CompleteTaskResponse>(`/tasks/${taskId}/complete`, {
-      referenceId,
-    });
+  async complete(
+    taskId: string,
+    referenceId: string,
+    answers: TaskAnswer[],
+  ): Promise<{ awardedXp: number }> {
+    const response = await apiClient.post<CompleteTaskResponse>(
+      `/tasks/${taskId}/complete`,
+      {
+        referenceId,
+        answers,
+      },
+    );
+
+    return { awardedXp: response.data.data.event.xpDelta };
   },
 };

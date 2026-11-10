@@ -6,6 +6,14 @@ export const taskParamSchema = z.object({
 
 export const completeTaskSchema = z.object({
   referenceId: z.uuid(),
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().min(1),
+        answer: z.string().min(1),
+      }),
+    )
+    .length(5),
 });
 
 export const taskListQuerySchema = z.object({
