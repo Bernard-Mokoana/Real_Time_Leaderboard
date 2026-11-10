@@ -11,8 +11,10 @@ import {
   leaderboardApi,
   type LeaderboardPage as LeaderboardPageData,
 } from "./api/leaderboard";
+import { tasksApi, type Task } from "./api/tasks";
 import { AuthForm } from "./components/AuthForm";
 import { Leaderboard } from "./components/Leaderboard";
+import { Tasks } from "./components/Tasks";
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected";
 
@@ -52,6 +54,10 @@ export default function App() {
   const [pageLoading, setPageLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [tasks, setTasks] = useState<Task[] | null>(null);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [tasksError, setTasksError] = useState<string | null>(null);
+  const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const [realtimeStatus, setRealtimeStatus] =
     useState<RealtimeStatus>("connecting");
   const [realtimeError, setRealtimeError] = useState<string | null>(null);
@@ -123,6 +129,40 @@ export default function App() {
       active = false;
     };
   }, [user, cursor, refreshVersion]);
+
+  useEffect(() => {
+    if (!user) {
+      setTasks(null);
+      setTasksError(null);
+      return;
+    }
+
+    let active = true;
+    setTasksLoading(true);
+    setTasksError(null);
+
+    tasksApi
+      .list()
+      .then((taskList) => {
+        if (active) {
+          setTasks(taskList);
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setTasksError(getErrorMessage(error, "Unable to load tasks."));
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setTasksLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
@@ -222,6 +262,27 @@ export default function App() {
     setCursor(previousCursor ?? null);
   };
 
+  const handleCompleteTask = async (taskId: string) => {
+    setCompletingTaskId(taskId);
+    setTasksError(null);
+
+    try {
+      await tasksApi.complete(taskId, crypto.randomUUID());
+      setTasks((currentTasks) =>
+        currentTasks?.map((task) =>
+          task.id === taskId ? { ...task, completed: true } : task,
+        ) ?? null,
+      );
+      setCursor(null);
+      setPreviousCursors([]);
+      setRefreshVersion((version) => version + 1);
+    } catch (error: unknown) {
+      setTasksError(getErrorMessage(error, "Unable to complete the task."));
+    } finally {
+      setCompletingTaskId(null);
+    }
+  };
+
   if (checkingSession) {
     return <main aria-busy="true">Checking your session...</main>;
   }
@@ -261,6 +322,13 @@ export default function App() {
         hasPreviousPage={previousCursors.length > 0}
         onNextPage={handleNextPage}
         onPreviousPage={handlePreviousPage}
+      />
+      <Tasks
+        tasks={tasks}
+        loading={tasksLoading}
+        error={tasksError}
+        completingTaskId={completingTaskId}
+        onComplete={handleCompleteTask}
       />
     </main>
   );

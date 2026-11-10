@@ -72,7 +72,7 @@ export function AuthForm({
             name="password"
             type="password"
             autoComplete={isRegistering ? "new-password" : "current-password"}
-            minLength={isRegistering ? 12 : 1}
+            minLength={6}
             required
           />
         </label>

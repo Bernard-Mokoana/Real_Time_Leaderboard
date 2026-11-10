@@ -185,6 +185,39 @@ tbody tr:hover {
   margin-top: 18px;
 }
 
+.tasks {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #ded4d4;
+}
+
+.task-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #ded4d4;
+  border-radius: 5px;
+}
+
+.task-item h3,
+.task-item p {
+  margin: 0;
+}
+
+.task-item p {
+  color: #624646;
+}
+
 @media (max-width: 560px) {
   .page {
     width: calc(100% - 20px);
@@ -193,6 +226,11 @@ tbody tr:hover {
   }
 
   .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .task-item {
     align-items: flex-start;
     flex-direction: column;
   }
